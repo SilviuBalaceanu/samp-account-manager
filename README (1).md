@@ -52,7 +52,7 @@ UI-ul accepta `Online` doar dupa `SpawnConfirmed` (testat). Pozitia X/Y/Z vine d
    verificari anti-cheat, nu emuleaza un client real si nu foloseste proxy. Campul GPCI din ClientJoin este trimis gol. Daca B-Zone
    respinge un client neoficial, vei vedea `ConnectionRejected`/deconectare in log; solutia compatibila este o autorizare explicita
    din partea administratorilor serverului pentru boti/clienti headless.
-3. **Nu exista sincronizare de pozitie/miscare**: ceilalti jucatori pot vedea personajul doar daca serverul il pastreaza in lume fara pachete de sync.
+3. **Sincronizare minima**: dupa SpawnConfirmed clientul trimite la 500 ms pachetul standard de sincronizare pe jos (in picioare, nemiscat, la pozitia data de server). Nu exista miscare, tinta sau alte date inventate. Evenimentul `SyncStarted` marcheaza inceputul.
 4. Autentificarea functioneaza pentru servere care cer parola intr-un dialog (stil parola); alte fluxuri de login nu sunt acoperite.
 5. Interfata WPF a fost scrisa fara a putea fi compilata local (nu exista .NET in mediul de dezvoltare); prima compilare se face in CI.
 6. Parolele sunt protejate cu DPAPI (utilizator Windows curent): backup-ul restaurat pe alt utilizator nu isi poate decripta parolele.

@@ -41,6 +41,8 @@ const ID_TIMESTAMP: u8 = 40;
 
 pub enum Command {
     Rpc { id: u8, payload: Vec<u8> },
+    /// Pachet brut (ex. sincronizare), cu fiabilitate si canal.
+    Send { data: Vec<u8>, reliability: Reliability, channel: u8 },
     Disconnect,
 }
 
@@ -254,6 +256,10 @@ impl Task {
             Command::Rpc { id, payload } => {
                 let frame = build_rpc(id, &payload);
                 self.rel.enqueue(&frame, Reliability::ReliableOrdered, 0);
+                self.flush();
+            }
+            Command::Send { data, reliability, channel } => {
+                self.rel.enqueue(&data, reliability, channel);
                 self.flush();
             }
             Command::Disconnect => {

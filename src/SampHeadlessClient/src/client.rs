@@ -16,7 +16,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use crate::bitstream::{BitStreamReader, BitStreamWriter};
 use crate::json::Obj;
 use crate::transport::{self, Command, Peer, RakEvent};
-use crate::types::DisconnectReason;
+use crate::types::{DisconnectReason, Reliability};
 
 const RPC_CLIENT_JOIN: u8 = 25;
 const RPC_SPAWN: u8 = 52;
@@ -39,6 +39,12 @@ const AUTH_GRACE: Duration = Duration::from_secs(3);
 const SPAWN_RETRY: Duration = Duration::from_secs(4);
 const MAX_SPAWN_ATTEMPTS: u32 = 3;
 const ONLINE_AFTER: Duration = Duration::from_secs(5);
+/// Sincronizare pe jos: pachet 207, canal 1, nesecventiat-fiabil, cadenta de repaus 500 ms.
+const PACKET_PLAYER_SYNC: u8 = 207;
+const SYNC_CHANNEL: u8 = 1;
+const SYNC_INTERVAL: Duration = Duration::from_millis(500);
+const ANIM_STANDING: u16 = 1189;
+const ANIM_STANDING_FLAGS: u16 = 0x8004;
 const AUTH_CONFIRM_TIMEOUT: Duration = Duration::from_secs(20);
 
 pub struct Config {
@@ -127,6 +133,10 @@ struct Session<'a> {
     last_spawn_request: Option<Instant>,
     spawn_confirmed_at: Option<Instant>,
     last_server_msg: Instant,
+    /// Pozitia cunoscuta (de la server) la care personajul sta nemiscat.
+    position: Option<(f32, f32, f32)>,
+    last_sync: Option<Instant>,
+    sync_announced: bool,
 }
 
 /// Ruleaza sesiunea pana la deconectare. Returneaza motivul final.
@@ -157,6 +167,9 @@ pub fn run(cfg: &Config, out: &Out, stdin_rx: &Receiver<crate::json::Object>) ->
         last_spawn_request: None,
         spawn_confirmed_at: None,
         last_server_msg: Instant::now(),
+        position: None,
+        last_sync: None,
+        sync_announced: false,
     };
     let reason = s.main_loop(stdin_rx);
     s.peer.join();
@@ -253,6 +266,9 @@ impl<'a> Session<'a> {
                 }
             }
         }
+        if matches!(self.phase, Phase::SpawnConfirmed | Phase::Online) {
+            self.send_sync_if_due(now);
+        }
         if self.phase == Phase::SpawnConfirmed {
             if let Some(t) = self.spawn_confirmed_at {
                 if now.duration_since(t) >= ONLINE_AFTER && now.duration_since(self.last_server_msg) < Duration::from_secs(10) {
@@ -263,6 +279,50 @@ impl<'a> Session<'a> {
                     );
                 }
             }
+        }
+    }
+
+    /// Trimite periodic pachetul standard de sincronizare pe jos, cu personajul in picioare la
+    /// pozitia primita de la server. Nu inventeaza miscare, tinte sau alte date de client.
+    fn send_sync_if_due(&mut self, now: Instant) {
+        let Some((x, y, z)) = self.position else { return };
+        if self.last_sync.map_or(false, |t| now.duration_since(t) < SYNC_INTERVAL) {
+            return;
+        }
+        self.last_sync = Some(now);
+        let mut w = BitStreamWriter::new();
+        w.write_u16(0); // lrAnalog
+        w.write_u16(0); // udAnalog
+        w.write_u16(0); // taste
+        w.write_f32(x);
+        w.write_f32(y);
+        w.write_f32(z);
+        w.write_f32(1.0); // cuaternion (w, x, y, z): identitate
+        w.write_f32(0.0);
+        w.write_f32(0.0);
+        w.write_f32(0.0);
+        w.write_u8(100); // viata
+        w.write_u8(0); // armura
+        w.write_u8(0); // arma
+        w.write_u8(0); // special action
+        w.write_f32(0.0); // viteza
+        w.write_f32(0.0);
+        w.write_f32(0.0);
+        w.write_f32(0.0); // surfing offset
+        w.write_f32(0.0);
+        w.write_f32(0.0);
+        w.write_u16(0); // surfing vehicle
+        w.write_u16(ANIM_STANDING);
+        w.write_u16(ANIM_STANDING_FLAGS);
+        let mut pkt = vec![PACKET_PLAYER_SYNC];
+        pkt.extend_from_slice(&w.into_bytes());
+        let _ = self.peer.cmd.send(Command::Send { data: pkt, reliability: Reliability::UnreliableSequenced, channel: SYNC_CHANNEL });
+        if !self.sync_announced {
+            self.sync_announced = true;
+            self.out.event(
+                "SyncStarted",
+                Obj::new().str("note", "trimit sincronizare pe jos (in picioare, nemiscat) la pozitia data de server").num("x", x as f64).num("y", y as f64).num("z", z as f64),
+            );
         }
     }
 
@@ -409,7 +469,8 @@ impl<'a> Session<'a> {
         }
     }
 
-    fn position(&self, source: &str, x: f32, y: f32, z: f32) {
+    fn position(&mut self, source: &str, x: f32, y: f32, z: f32) {
+        self.position = Some((x, y, z));
         self.out.event(
             "PositionUpdate",
             Obj::new()
@@ -479,6 +540,9 @@ mod tests {
         spawn_rpc: bool,
         disconnect: bool,
         request_spawn_before_login: bool,
+        sync_packets: u32,
+        sync_len: usize,
+        sync_x: f32,
     }
 
     /// Server simulat (doar pentru test), vorbeste acelasi format de fire cu clientul.
@@ -514,6 +578,14 @@ mod tests {
                                         rel.enqueue(&b, Reliability::Reliable, 0);
                                     }
                                     Some(32) => seen2.lock().unwrap().disconnect = true,
+                                    Some(207) => {
+                                        let mut g = seen2.lock().unwrap();
+                                        g.sync_packets += 1;
+                                        g.sync_len = m.len();
+                                        if m.len() >= 11 {
+                                            g.sync_x = f32::from_le_bytes([m[7], m[8], m[9], m[10]]);
+                                        }
+                                    }
                                     Some(20) => {
                                         if let Some((id, p)) = parse_rpc(&m) {
                                             match id {
@@ -662,6 +734,9 @@ mod tests {
         let s = seen.lock().unwrap();
         assert_eq!(s.dialog_reply.as_deref(), Some("parola-secreta"));
         assert!(!s.request_spawn_before_login);
+        assert!(s.sync_packets >= 2, "clientul trebuie sa trimita sincronizare dupa spawn: {}", s.sync_packets);
+        assert_eq!(s.sync_len, 69, "pachet sync: id + 68 octeti");
+        assert_eq!(s.sync_x, 1958.5, "sync la pozitia data de server");
         assert!(lines.iter().any(|l| l.contains("\"event\":\"PositionUpdate\"") && l.contains("1958.5")));
         assert!(!lines.iter().any(|l| l.contains("parola-secreta")), "parola a ajuns in evenimente");
     }
