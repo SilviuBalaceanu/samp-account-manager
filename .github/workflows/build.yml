@@ -34,6 +34,10 @@ jobs:
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
           -p:HeadlessExe="${{ github.workspace }}\src\SampHeadlessClient\target\release\samp_headless_client.exe"
           -o publish
+          
+      - name: Copiaza clientul headless langa aplicatie
+        shell: pwsh
+        run: Copy-Item src/SampHeadlessClient/target/release/samp_headless_client.exe publish/ -Force
 
       - name: Verifica ca ambele exe sunt prezente
         shell: pwsh
