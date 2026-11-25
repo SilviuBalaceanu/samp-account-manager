@@ -1,0 +1,36 @@
+<Window x:Class="SampAccountManager.WPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:SampAccountManager.WPF.ViewModels"
+        xmlns:v="clr-namespace:SampAccountManager.WPF.Views"
+        Title="SA-MP Account Manager" Width="1180" Height="760" MinWidth="980" MinHeight="620"
+        WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:DashboardViewModel}"><v:DashboardView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:AccountsViewModel}"><v:AccountsView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ServersViewModel}"><v:ServersView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SessionsViewModel}"><v:SessionsView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SettingsViewModel}"><v:SettingsView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:LogsViewModel}"><v:LogsView /></DataTemplate>
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="210" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+            <DockPanel Margin="14">
+                <StackPanel DockPanel.Dock="Top" Margin="6,6,0,22">
+                    <TextBlock Text="SA-MP" FontSize="22" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" />
+                    <TextBlock Text="Account Manager" Style="{StaticResource Muted}" />
+                </StackPanel>
+                <TextBlock DockPanel.Dock="Bottom" Text="Client headless · fara GTA" Style="{StaticResource Muted}" FontSize="11" Margin="6,0,0,0" />
+                <ListBox ItemsSource="{Binding Nav}" SelectedItem="{Binding SelectedNav, Mode=TwoWay}"
+                         ItemContainerStyle="{StaticResource NavItem}" />
+            </DockPanel>
+        </Border>
+
+        <ContentControl Grid.Column="1" Content="{Binding CurrentPage}" Margin="28,24,28,20" />
+    </Grid>
+</Window>

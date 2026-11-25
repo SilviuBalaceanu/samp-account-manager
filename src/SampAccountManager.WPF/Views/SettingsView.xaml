@@ -1,0 +1,51 @@
+<UserControl x:Class="SampAccountManager.WPF.Views.SettingsView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel MaxWidth="760" HorizontalAlignment="Left">
+            <TextBlock Text="Settings" Style="{StaticResource H1}" Margin="0,0,0,16" />
+
+            <Border Style="{StaticResource Card}" Margin="0,0,0,14"><StackPanel>
+                <TextBlock Text="General" Style="{StaticResource H2}" />
+                <CheckBox Content="Porneste aplicatia automat cu Windows" IsChecked="{Binding AutoStart}" />
+                <CheckBox Content="Salvare automata a modificarilor" IsChecked="{Binding AutoSave}" />
+                <Button Content="Salveaza acum" Command="{Binding SaveNowCommand}" HorizontalAlignment="Left" Margin="0,8,0,0"
+                        Visibility="{Binding ManualSaveVisible, Converter={StaticResource BoolToVis}}" />
+                <TextBlock Text="Server implicit" Style="{StaticResource Muted}" Margin="0,12,0,4" />
+                <ComboBox ItemsSource="{Binding ServerChoices}" SelectedItem="{Binding DefaultServer, Mode=TwoWay}" DisplayMemberPath="Name" Width="320" HorizontalAlignment="Left" />
+            </StackPanel></Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,0,0,14"><StackPanel>
+                <TextBlock Text="Loguri" Style="{StaticResource H2}" />
+                <TextBox Text="{Binding LogFolder, Mode=OneWay}" IsReadOnly="True" Margin="0,0,0,8" />
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Alege folder..." Command="{Binding BrowseLogsCommand}" />
+                    <Button Content="Foloseste folderul implicit" Command="{Binding ResetLogFolderCommand}" />
+                </StackPanel>
+            </StackPanel></Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,0,0,14"><StackPanel>
+                <TextBlock Text="Reconectare automata" Style="{StaticResource H2}" />
+                <CheckBox Content="Reconecteaza daca sesiunea cade neasteptat (nu dupa ban sau respingere)" IsChecked="{Binding ReconnectEnabled}" />
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <StackPanel Margin="0,0,16,0">
+                        <TextBlock Text="Interval (secunde, minim 5)" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding ReconnectInterval, UpdateSourceTrigger=LostFocus}" Width="120" />
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="Incercari maxime" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding MaxReconnectAttempts, UpdateSourceTrigger=LostFocus}" Width="120" />
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel></Border>
+
+            <Border Style="{StaticResource Card}"><StackPanel>
+                <TextBlock Text="Backup si restaurare" Style="{StaticResource H2}" />
+                <TextBlock Text="Salveaza conturile, serverele si setarile intr-un .zip. Parolele raman criptate DPAPI, deci pot fi folosite doar de acelasi utilizator Windows." Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,10" />
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Creeaza backup" Style="{StaticResource PrimaryButton}" Command="{Binding BackupCommand}" />
+                    <Button Content="Restaureaza..." Command="{Binding RestoreCommand}" />
+                </StackPanel>
+                <TextBlock Text="{Binding Status}" Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,10,0,0" />
+            </StackPanel></Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

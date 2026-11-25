@@ -1,0 +1,48 @@
+name: build-windows
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rust - teste
+        working-directory: src/SampHeadlessClient
+        run: cargo test --release
+
+      - name: Rust - build client headless
+        working-directory: src/SampHeadlessClient
+        run: cargo build --release
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: .NET - teste (masina de stari a sesiunilor)
+        run: dotnet test src/SampAccountManager.Tests/SampAccountManager.Tests.csproj -c Release
+
+      - name: .NET - publish WPF (self-contained, un singur exe)
+        run: >
+          dotnet publish src/SampAccountManager.WPF/SampAccountManager.WPF.csproj
+          -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:HeadlessExe="${{ github.workspace }}\src\SampHeadlessClient\target\release\samp_headless_client.exe"
+          -o publish
+
+      - name: Verifica ca ambele exe sunt prezente
+        shell: pwsh
+        run: |
+          if (-not (Test-Path publish/SampAccountManager.exe)) { throw "lipseste SampAccountManager.exe" }
+          if (-not (Test-Path publish/samp_headless_client.exe)) { throw "lipseste samp_headless_client.exe" }
+          Get-ChildItem publish | Select-Object Name, Length
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SampAccountManager-win-x64
+          path: publish/

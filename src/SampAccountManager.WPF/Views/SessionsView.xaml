@@ -1,0 +1,64 @@
+<UserControl x:Class="SampAccountManager.WPF.Views.SessionsView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DockPanel>
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,14">
+            <Button DockPanel.Dock="Right" Content="Deconecteaza toate" Style="{StaticResource DangerButton}" Command="{Binding DisconnectAllCommand}" Margin="0" />
+            <StackPanel>
+                <TextBlock Text="Sessions" Style="{StaticResource H1}" />
+                <TextBlock Text="Fiecare cont are propriul proces headless si propriul jurnal. Pornirea se face din pagina Accounts." Style="{StaticResource Muted}" />
+            </StackPanel>
+        </DockPanel>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="320" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <ListBox ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected, Mode=TwoWay}" ItemContainerStyle="{StaticResource RowItem}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <Ellipse Width="9" Height="9" Margin="0,0,6,0" Fill="{Binding State, Converter={StaticResource StateBrush}}" />
+                                    <TextBlock Text="{Binding StateLabel}" FontSize="12" Foreground="{Binding State, Converter={StaticResource StateBrush}}" />
+                                </StackPanel>
+                                <TextBlock Text="{Binding Nickname}" FontWeight="SemiBold" FontSize="15" />
+                            </DockPanel>
+                            <TextBlock Text="{Binding ServerText}" Style="{StaticResource Muted}" FontSize="12" />
+                            <TextBlock Text="{Binding ConnectedFor}" Style="{StaticResource Muted}" FontSize="12" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <Border Grid.Column="2" Style="{StaticResource Card}" DataContext="{Binding Selected}"
+                    Visibility="{Binding Converter={StaticResource NullToCollapsed}}">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <TextBlock Text="{Binding Nickname}" FontSize="20" FontWeight="SemiBold" />
+                            <Ellipse Width="10" Height="10" Margin="14,4,6,0" Fill="{Binding State, Converter={StaticResource StateBrush}}" />
+                            <TextBlock Text="{Binding StateLabel}" FontSize="15" Foreground="{Binding State, Converter={StaticResource StateBrush}}" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding ServerText}" Style="{StaticResource Muted}" />
+                        <TextBlock Text="{Binding ServerNameText}" Style="{StaticResource Muted}" Visibility="{Binding ServerNameText, Converter={StaticResource NullToCollapsed}}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                            <TextBlock Text="Timp conectat: " Style="{StaticResource Muted}" />
+                            <TextBlock Text="{Binding ConnectedFor}" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding PositionText}" Margin="0,8,0,0" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding WorldText}" Style="{StaticResource Muted}" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding Note}" Foreground="{StaticResource WarnBrush}" TextWrapping="Wrap" Margin="0,8,0,0"
+                                   Visibility="{Binding Note, Converter={StaticResource NullToCollapsed}}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,14,0,12">
+                            <Button Content="CONNECT" Style="{StaticResource PrimaryButton}" Command="{Binding ConnectCommand}" Width="110" />
+                            <Button Content="DISCONNECT" Command="{Binding DisconnectCommand}" Width="110" />
+                            <Button Content="RECONNECT" Command="{Binding ReconnectCommand}" Width="110" />
+                        </StackPanel>
+                        <TextBlock Text="Log sesiune" Style="{StaticResource H2}" />
+                    </StackPanel>
+                    <ListBox ItemsSource="{Binding Log}" FontFamily="Consolas" FontSize="12" />
+                </DockPanel>
+            </Border>
+        </Grid>
+    </DockPanel>
+</UserControl>

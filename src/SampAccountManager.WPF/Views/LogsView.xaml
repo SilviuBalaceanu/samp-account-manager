@@ -1,0 +1,18 @@
+<UserControl x:Class="SampAccountManager.WPF.Views.LogsView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,14">
+            <TextBlock Text="Logs" Style="{StaticResource H1}" />
+            <TextBlock Text="Evenimentele reale primite de la clientii headless. Parolele nu sunt niciodata logate." Style="{StaticResource Muted}" />
+        </StackPanel>
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <Button Content="Deschide folderul" Command="{Binding OpenFolderCommand}" />
+                <Button Content="Goleste" Command="{Binding ClearCommand}" Margin="0" />
+            </StackPanel>
+            <TextBox Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,12,0" ToolTip="Filtreaza (nickname sau text)" />
+        </DockPanel>
+        <Border Style="{StaticResource Card}">
+            <ListBox ItemsSource="{Binding View}" FontFamily="Consolas" FontSize="12" />
+        </Border>
+    </DockPanel>
+</UserControl>

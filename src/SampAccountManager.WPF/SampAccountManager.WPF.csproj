@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>SampAccountManager.WPF</RootNamespace>
+    <AssemblyName>SampAccountManager</AssemblyName>
+    <ApplicationTitle>SA-MP Account Manager</ApplicationTitle>
+    <Version>1.0.0</Version>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- Calea clientului Rust compilat; in CI se transmite cu -p:HeadlessExe=... -->
+    <HeadlessExe Condition="'$(HeadlessExe)' == ''">$(MSBuildThisFileDirectory)..\SampHeadlessClient\target\release\samp_headless_client.exe</HeadlessExe>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SampAccountManager.Services\SampAccountManager.Services.csproj" />
+    <ProjectReference Include="..\SampAccountManager.Core\SampAccountManager.Core.csproj" />
+    <ProjectReference Include="..\SampAccountManager.Models\SampAccountManager.Models.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="Exists('$(HeadlessExe)')">
+    <Content Include="$(HeadlessExe)" Link="samp_headless_client.exe" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

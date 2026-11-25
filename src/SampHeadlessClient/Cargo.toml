@@ -1,0 +1,17 @@
+[package]
+name = "samp_headless_client"
+version = "0.1.0"
+edition = "2021"
+description = "Client SA-MP headless (fara grafica), std-only, controlat prin JSON Lines pe stdin/stdout"
+
+[[bin]]
+name = "samp_headless_client"
+path = "src/main.rs"
+
+[dependencies]
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+panic = "abort"

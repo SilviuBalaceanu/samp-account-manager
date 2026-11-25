@@ -1,0 +1,40 @@
+<UserControl x:Class="SampAccountManager.WPF.Views.ServersView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,14">
+            <TextBlock Text="Servers" Style="{StaticResource H1}" />
+            <TextBlock Text="Statusul se obtine prin interogarea standard SA-MP (UDP). B-Zone este adaugat implicit." Style="{StaticResource Muted}" />
+        </StackPanel>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,12">
+            <Button Content="+ Adauga" Style="{StaticResource PrimaryButton}" Command="{Binding AddCommand}" />
+            <Button Content="Editeaza" Command="{Binding EditCommand}" />
+            <Button Content="Seteaza implicit" Command="{Binding DefaultCommand}" />
+            <Button Content="Reimprospateaza status" Command="{Binding RefreshCommand}" />
+            <Button Content="Sterge" Style="{StaticResource DangerButton}" Command="{Binding DeleteCommand}" />
+        </StackPanel>
+        <ListBox ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected, Mode=TwoWay}" ItemContainerStyle="{StaticResource RowItem}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding DefaultText}" Foreground="{StaticResource AccentBrush}" Margin="10,2,0,0" FontSize="12" />
+                            </StackPanel>
+                            <TextBlock Text="{Binding Address}" Style="{StaticResource Muted}" FontSize="12" />
+                            <TextBlock Text="{Binding Description}" Style="{StaticResource Muted}" FontSize="12" Visibility="{Binding Description, Converter={StaticResource NullToCollapsed}}" />
+                            <TextBlock Text="{Binding HostName}" Style="{StaticResource Muted}" FontSize="12" Visibility="{Binding HostName, Converter={StaticResource NullToCollapsed}}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Ellipse Width="9" Height="9" Margin="0,0,8,0" Fill="{Binding Status, Converter={StaticResource StatusBrush}}" />
+                            <TextBlock Text="{Binding StatusText}" />
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+</UserControl>

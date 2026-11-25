@@ -1,0 +1,9 @@
+target/
+bin/
+obj/
+publish/
+*.user
+.vs/
+data/*.json
+logs/*
+backups/*
